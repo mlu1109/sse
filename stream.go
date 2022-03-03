@@ -97,8 +97,6 @@ func (s *Stream) Subscribe(resp *http.Response) error {
 				err := s.ctx.Err()
 				s.onClose(err)
 				return
-			default:
-				continue
 			}
 		}
 	}()

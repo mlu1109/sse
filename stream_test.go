@@ -54,8 +54,6 @@ func TestSubscribe(t *testing.T) {
 						event: fmt.Sprint("event", i)}:
 					case <-ctx.Done():
 						return
-					default:
-						continue
 					}
 				}
 			}
