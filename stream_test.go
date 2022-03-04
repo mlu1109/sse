@@ -46,7 +46,6 @@ func TestSubscribe(t *testing.T) {
 			ch := make(chan fmt.Stringer)
 			routine := func() {
 				for i := 0; ; i++ {
-					time.Sleep(1 * time.Millisecond)
 					select {
 					case ch <- Event{
 						id:    fmt.Sprint("id", i),
