@@ -63,6 +63,7 @@ func NewTestSSEServer(events <-chan fmt.Stringer) *httptest.Server {
 		done := r.Context().Done()
 		ch := make(chan fmt.Stringer)
 		clients[clientID] = ch
+		fmt.Fprint(rw, ": Connected\n\n")
 		flusher.Flush()
 		for {
 			select {
@@ -81,8 +82,6 @@ func NewTestSSEServer(events <-chan fmt.Stringer) *httptest.Server {
 				} else {
 					return
 				}
-			default:
-				continue
 			}
 		}
 	})
