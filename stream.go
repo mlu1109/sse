@@ -15,6 +15,7 @@ type Stream struct {
 	onError func(err error)
 	onOpen  func()
 	onClose func(err error)
+	closed  bool
 }
 
 func NewStream(ctx context.Context) *Stream {
@@ -24,6 +25,7 @@ func NewStream(ctx context.Context) *Stream {
 		onError: func(err error) {},
 		onOpen:  func() {},
 		onClose: func(err error) {},
+		closed:  false,
 	}
 }
 
@@ -81,7 +83,7 @@ func (s *Stream) Subscribe(resp *http.Response) error {
 		defer func() {
 			resp.Body.Close()
 		}()
-		chevent, cherr := reader(resp)
+		chevent, cherr := s.reader(resp)
 		connected := false
 		for {
 			select {
@@ -94,6 +96,7 @@ func (s *Stream) Subscribe(resp *http.Response) error {
 			case err := <-cherr:
 				s.onError(err)
 			case <-s.ctx.Done():
+				s.closed = true
 				err := s.ctx.Err()
 				s.onClose(err)
 				return
@@ -104,14 +107,14 @@ func (s *Stream) Subscribe(resp *http.Response) error {
 	return nil
 }
 
-func reader(resp *http.Response) (<-chan Event, <-chan error) {
+func (s *Stream) reader(resp *http.Response) (<-chan Event, <-chan error) {
 	success := make(chan Event)
 	errch := make(chan error)
 
 	go func() {
 		event := make(Event)
 		reader := bufio.NewReader(resp.Body)
-		for {
+		for !s.closed {
 			bytes, err := reader.ReadBytes('\n')
 			line := strings.TrimSuffix(string(bytes), "\n")
 			line = strings.TrimSuffix(line, "\r")
